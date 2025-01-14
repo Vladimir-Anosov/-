@@ -1,0 +1,29 @@
+
+#include <iostream>
+#include <iomanip> 
+#include <locale>
+#include <codecvt>
+
+int main() {
+
+    std::setlocale(LC_ALL, "RU");
+
+    // Строчные буквы русского алфавита
+    std::cout << "Строчные буквы:\n";
+    for (char32_t ch = 0x0430; ch <= 0x044F; ++ch) {
+        std::wcout << L"Символ: " << static_cast<wchar_t>(ch)
+            << L", Шестнадцатеричный код: " << std::hex << ch
+            << L", Восьмеричный код: " << std::oct << ch << std::dec << L"\n";
+    }
+
+    // Прописные буквы русского алфавита
+    std::cout << "\nПрописные буквы:\n";
+    for (char32_t ch = 0x0410; ch <= 0x042F; ++ch) {
+        std::wcout << L"Символ: " << static_cast<wchar_t>(ch)
+            << L", Шестнадцатеричный код: " << std::hex << ch
+            << L", Восьмеричный код: " << std::oct << ch << std::dec << L"\n";
+    }
+
+    return 0;
+}
+
