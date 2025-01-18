@@ -1,9 +1,9 @@
-#include <iostream>
-#include <cmath>
-#include <stdexcept>
-#include <string>
+#include <iostream>  
+#include <cmath>     
+#include <stdexcept>  
+#include <string>     
 
-
+// Определение пользовательского исключения, наследующего std::exception
 class CustomException : public std::exception
 {
 private:
@@ -11,19 +11,23 @@ private:
     double value;         // Значение, вызвавшее ошибку
     int errorCode;        // Код ошибки
 public:
+    // Конструктор для инициализации сообщения, значения и кода ошибки
     CustomException(const std::string& msg, double val, int code)
         : message(msg), value(val), errorCode(code) {}
 
+    // Переопределение метода what() для возврата сообщения об ошибке
     const char* what() const noexcept override
     {
         return message.c_str();
     }
 
+    // Метод для получения значения, вызвавшего ошибку
     double getValue() const
     {
         return value;
     }
 
+    // Метод для получения кода ошибки
     int getErrorCode() const
     {
         return errorCode;
@@ -35,17 +39,22 @@ void calculate_z1(double x, double& z1)
 {
     try
     {
+        // Вычисление корня из выражения; может вызвать std::domain_error при x^2 < 9
         double sqrt_term = sqrt(x * x - 9);
         double denominator = x * x - 2 * x - 3 + (x - 1) * sqrt_term;
+
+        // Проверка деления на ноль
         if (denominator == 0)
         {
-            throw CustomException("Деление на ноль в Z1", x, 101);
+            throw CustomException("Деление на ноль в Z1", x, 101); // Генерация исключения
         }
+
+        // Вычисление Z1
         z1 = (x * x + 2 * x - 3 + (x + 1) * sqrt_term) / denominator;
     }
     catch (const std::domain_error&)
     {
-        throw CustomException("Неверная операция в Z1", x, 102);
+        throw CustomException("Неверная операция в Z1", x, 102); // Обработка исключения и генерация пользовательского исключения
     }
 }
 
@@ -54,33 +63,39 @@ void calculate_z2(double x, double& z2)
 {
     try
     {
+        // Проверка деления на ноль
         if (x - 3 == 0)
         {
-            throw CustomException("Деление на ноль в Z2", x, 103);
+            throw CustomException("Деление на ноль в Z2", x, 103); // Генерация исключения
         }
+
+        // Вычисление Z2
         z2 = sqrt((x + 3) / (x - 3));
     }
     catch (const std::domain_error&)
     {
-        throw CustomException("Неверная операция в Z2", x, 104);
+        throw CustomException("Неверная операция в Z2", x, 104); // Обработка исключения и генерация пользовательского исключения
     }
 }
 
 int main()
 {
-    setlocale(LC_ALL, "Russian");
+    setlocale(LC_ALL, "Russian"); 
 
     double x = 5.0;  // Пример значения; можно изменить для проверки других случаев
-    double z1 = 0.0, z2 = 0.0;
+    double z1 = 0.0, z2 = 0.0; // Инициализация переменных для результатов
 
     try
     {
+        // Вызов функций для вычисления Z1 и Z2
         calculate_z1(x, z1);
         calculate_z2(x, z2);
 
+        // Вывод результатов на экран
         std::cout << "Z1: " << z1 << std::endl;
         std::cout << "Z2: " << z2 << std::endl;
 
+        // Сравнение Z1 и Z2 с учетом погрешности
         if (std::fabs(z1 - z2) < 1e-9)
         {
             std::cout << "Z1 и Z2 приблизительно равны." << std::endl;
@@ -89,7 +104,7 @@ int main()
             std::cout << "Z1 и Z2 не приблизительно равны." << std::endl;
         }
     }
-    catch (const CustomException& e)
+    catch (const CustomException& e) // Обработка пользовательских исключений
     {
         std::cerr << e.what() << " (Значение: " << e.getValue() << ", Код ошибки: " << e.getErrorCode() << ")" << std::endl;
     }
