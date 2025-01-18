@@ -1,407 +1,98 @@
-
 #include <iostream>
-#include <initializer_list>
+#include <cmath>
 #include <stdexcept>
 #include <string>
 
-namespace containers {
 
-template <typename T>
-class NameClass {
+class CustomException : public std::exception
+{
 private:
-    struct Node {
-    public:
-        T value;
-
-    private:
-        Node* next;
-
-        Node(const T& val, Node* nxt = nullptr) : value(val), next(nxt) {}
-
-
-        friend class NameClass;
-    };
-
-
-    Node* head;
-    size_t listSize;
-
+    std::string message;  // Сообщение об ошибке
+    double value;         // Значение, вызвавшее ошибку
+    int errorCode;        // Код ошибки
 public:
-    // Default constructor
-    NameClass() : head(nullptr), listSize(0) {}
+    CustomException(const std::string& msg, double val, int code)
+        : message(msg), value(val), errorCode(code) {}
 
-    // Constructor from initializer_list
-    NameClass(std::initializer_list<T> initList) : head(nullptr), listSize(0) {
-        for (const T& value : initList) {
-            push_back(value);
-        }
-    }
-
-    // Copy constructor
-    NameClass(const NameClass& other) : head(nullptr), listSize(0) {
-        Node* currentOther = other.head;
-        while (currentOther != nullptr) {
-            push_back(currentOther->value);
-            currentOther = currentOther->next;
-        }
-    }
-
-    // Copy assignment operator
-    NameClass& operator=(const NameClass& other) {
-        if (this != &other) {
-           clear(); //Clear existing list
-           Node* currentOther = other.head;
-           while (currentOther != nullptr) {
-              push_back(currentOther->value);
-              currentOther = currentOther->next;
-             }
-        }
-        return *this;
-    }
-
-    // Move constructor
-    NameClass(NameClass&& other) noexcept : head(other.head), listSize(other.listSize) {
-        other.head = nullptr;
-        other.listSize = 0;
-    }
-
-    // Move assignment operator
-    NameClass& operator=(NameClass&& other) noexcept {
-        if (this != &other) {
-            clear(); //Clear existing list
-            head = other.head;
-            listSize = other.listSize;
-            other.head = nullptr;
-            other.listSize = 0;
-        }
-        return *this;
-    }
-
-    // Destructor
-     ~NameClass() {
-        clear();
-    }
-
-    // Indexing operator
-    T& operator[](size_t index) {
-        if (index >= listSize) {
-            throw std::out_of_range("Index out of range");
-        }
-        Node* current = head;
-        for (size_t i = 0; i < index; ++i) {
-            current = current->next;
-        }
-        return current->value;
-    }
-
-    // Method to add element at a specified position
-     void insert(size_t index, const T& value) {
-        if (index > listSize) {
-            throw std::out_of_range("Index out of range");
-        }
-        if (index == 0) {
-           push_front(value);
-           return;
-        }
-
-        Node* newNode = new Node(value);
-        Node* current = head;
-        for (size_t i = 0; i < index - 1; ++i) {
-           current = current->next;
-       }
-
-        newNode->next = current->next;
-        current->next = newNode;
-        listSize++;
-    }
-
-        //Method to add element at the end of the list
-        void push_back(const T& value)
-        {
-            Node* newNode = new Node(value);
-
-            if(head==nullptr)
-            {
-                head = newNode;
-            }
-            else
-            {
-               Node* current = head;
-                while (current->next !=nullptr) {
-                   current = current->next;
-                }
-                current->next = newNode;
-            }
-
-            listSize++;
-        }
-
-        //Method to add element at the front of the list
-          void push_front(const T& value)
-        {
-             Node* newNode = new Node(value);
-             newNode->next = head;
-            head = newNode;
-            listSize++;
-
-        }
-    // Method to remove element from the end of the list
-    void pop_back() {
-          if (head == nullptr)
-        {
-             throw std::out_of_range("List is Empty");
-        }
-         if(listSize == 1)
-         {
-          delete head;
-          head=nullptr;
-           listSize--;
-          return;
-         }
-
-         Node * current = head;
-         Node* prev = nullptr;
-        while (current->next !=nullptr) {
-            prev = current;
-           current = current->next;
-
-        }
-         delete current;
-         prev->next = nullptr;
-         listSize--;
-
-    }
-
-    //Method to remove element from the front of the list
-        void pop_front()
+    const char* what() const noexcept override
     {
-         if (head == nullptr)
-        {
-            throw std::out_of_range("List is Empty");
-        }
-
-            Node* temp = head;
-            head = head->next;
-            delete temp;
-           listSize--;
-
-
+        return message.c_str();
     }
 
-
-    // Method to remove an element at a specified index
-        void erase(size_t index)
-       {
-          if (index >= listSize) {
-            throw std::out_of_range("Index out of range");
-        }
-
-        if(index == 0)
-        {
-            pop_front();
-            return;
-        }
-
-       if(index == listSize -1)
-        {
-            pop_back();
-            return;
-        }
-        Node* current = head;
-        Node* prev = nullptr;
-        for (size_t i = 0; i < index; ++i)
-        {
-            prev = current;
-            current = current->next;
-        }
-         prev->next = current->next;
-         delete current;
-         listSize--;
-
-     }
-
-     //Method to clear all elements from the list
-      void clear() {
-        while (head != nullptr) {
-            Node* temp = head;
-            head = head->next;
-             delete temp;
-          }
-
-         listSize=0;
+    double getValue() const
+    {
+        return value;
     }
-     //Method to find number of elements in a list
-     size_t size() const { return listSize; }
 
-
-     //Overload of operator << for outputting the list
-    template <typename U>
-     friend std::ostream& operator<<(std::ostream& os, const NameClass<U>& list)
-      {
-          Node* current = list.head;
-          os << "[ ";
-          while (current != nullptr)
-          {
-             os << current->value << " ";
-             current = current->next;
-          }
-         os <<"]";
-         return os;
-     }
+    int getErrorCode() const
+    {
+        return errorCode;
+    }
 };
 
-
-} // namespace containers
-
-int main() {
-    using namespace containers;
-
-    int choice;
-
-    do {
-        std::cout << "\nMenu:\n";
-        std::cout << "1. Test with int\n";
-        std::cout << "2. Test with double\n";
-        std::cout << "3. Test with string\n";
-        std::cout << "0. Exit\n";
-        std::cout << "Enter your choice: ";
-        std::cin >> choice;
-
-       switch (choice) {
-         case 1: {
-                NameClass<int> intList;
-                intList.push_back(1);
-                intList.push_back(2);
-                intList.push_back(3);
-                 std::cout << "Initial list: " << intList << std::endl;
-
-                 intList.insert(1, 4);
-                std::cout << "After inserting 4 at index 1: " << intList << std::endl;
-
-                intList.pop_back();
-                 std::cout << "After pop_back: " << intList << std::endl;
-
-                intList.pop_front();
-                std::cout << "After pop_front: " << intList << std::endl;
-
-                intList.push_front(10);
-                  std::cout << "After push_front(10): " << intList << std::endl;
-
-                intList.erase(1);
-                  std::cout << "After erase(1): " << intList << std::endl;
-
-                try
-               {
-                std::cout << "Element at index 0 : " << intList[0] << std::endl;
-                intList[5] = 10;
-
-              } catch(const std::out_of_range& e) {
-                  std::cerr << "Exception: " << e.what() << std::endl;
-                }
-
-                NameClass<int> intList2;
-
-                 intList2 = intList;
-
-                 std::cout << "Copied list: " << intList2 << std::endl;
-
-                 NameClass<int> intList3;
-
-                  intList3 = std::move(intList);
-                  std::cout << "Moved list: " << intList3 << std::endl;
-
-                 std::cout << "Initial list after move: " << intList << std::endl;
-
-
-                break;
-          }
-            case 2: {
-                NameClass<double> doubleList;
-                doubleList.push_back(1.1);
-                 doubleList.push_back(2.2);
-                doubleList.push_back(3.3);
-                std::cout << "Initial list: " << doubleList << std::endl;
-
-                doubleList.insert(1, 4.4);
-                  std::cout << "After inserting 4.4 at index 1: " << doubleList << std::endl;
-
-                doubleList.pop_back();
-                 std::cout << "After pop_back: " << doubleList << std::endl;
-
-                 doubleList.pop_front();
-                std::cout << "After pop_front: " << doubleList << std::endl;
-                  doubleList.push_front(10.1);
-                  std::cout << "After push_front(10.1): " << doubleList << std::endl;
-
-                  doubleList.erase(1);
-                  std::cout << "After erase(1): " << doubleList << std::endl;
-
-                try
-               {
-                    std::cout << "Element at index 0: " << doubleList[0] << std::endl;
-                    doubleList[5] = 10.0;
-                }  catch(const std::out_of_range& e) {
-                  std::cerr << "Exception: " << e.what() << std::endl;
-                }
-
-                NameClass<double> doubleList2;
-
-                doubleList2 = doubleList;
-                   std::cout << "Copied list: " << doubleList2 << std::endl;
-                 NameClass<double> doubleList3;
-
-                doubleList3 = std::move(doubleList);
-                 std::cout << "Moved list: " << doubleList3 << std::endl;
-
-                    std::cout << "Initial list after move: " << doubleList << std::endl;
-                break;
-            }
-            case 3: {
-                NameClass<std::string> stringList;
-                stringList.push_back("apple");
-                stringList.push_back("banana");
-                stringList.push_back("cherry");
-                  std::cout << "Initial list: " << stringList << std::endl;
-
-                stringList.insert(1, "date");
-                    std::cout << "After inserting date at index 1: " << stringList << std::endl;
-
-                stringList.pop_back();
-                 std::cout << "After pop_back: " << stringList << std::endl;
-
-                  stringList.pop_front();
-                std::cout << "After pop_front: " << stringList << std::endl;
-                   stringList.push_front("elderberry");
-                  std::cout << "After push_front(elderberry): " << stringList << std::endl;
-
-                stringList.erase(1);
-                 std::cout << "After erase(1): " << stringList << std::endl;
-                try
-                {
-                   std::cout << "Element at index 0 : " << stringList[0] << std::endl;
-                   stringList[5] = "fig";
-                } catch(const std::out_of_range& e) {
-                  std::cerr << "Exception: " << e.what() << std::endl;
-                }
-
-                NameClass<std::string> stringList2;
-                   stringList2 = stringList;
-                   std::cout << "Copied list: " << stringList2 << std::endl;
-
-                NameClass<std::string> stringList3;
-                stringList3 = std::move(stringList);
-                 std::cout << "Moved list: " << stringList3 << std::endl;
-
-                     std::cout << "Initial list after move: " << stringList << std::endl;
-                break;
-            }
-            case 0:
-                std::cout << "Exiting program.\n";
-                break;
-            default:
-                std::cout << "Invalid choice. Please try again.\n";
+// Функция для вычисления Z1
+void calculate_z1(double x, double& z1)
+{
+    try
+    {
+        double sqrt_term = sqrt(x * x - 9);
+        double denominator = x * x - 2 * x - 3 + (x - 1) * sqrt_term;
+        if (denominator == 0)
+        {
+            throw CustomException("Деление на ноль в Z1", x, 101);
         }
-    } while (choice != 0);
+        z1 = (x * x + 2 * x - 3 + (x + 1) * sqrt_term) / denominator;
+    }
+    catch (const std::domain_error&)
+    {
+        throw CustomException("Неверная операция в Z1", x, 102);
+    }
+}
+
+// Функция для вычисления Z2
+void calculate_z2(double x, double& z2)
+{
+    try
+    {
+        if (x - 3 == 0)
+        {
+            throw CustomException("Деление на ноль в Z2", x, 103);
+        }
+        z2 = sqrt((x + 3) / (x - 3));
+    }
+    catch (const std::domain_error&)
+    {
+        throw CustomException("Неверная операция в Z2", x, 104);
+    }
+}
+
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+
+    double x = 5.0;  // Пример значения; можно изменить для проверки других случаев
+    double z1 = 0.0, z2 = 0.0;
+
+    try
+    {
+        calculate_z1(x, z1);
+        calculate_z2(x, z2);
+
+        std::cout << "Z1: " << z1 << std::endl;
+        std::cout << "Z2: " << z2 << std::endl;
+
+        if (std::fabs(z1 - z2) < 1e-9)
+        {
+            std::cout << "Z1 и Z2 приблизительно равны." << std::endl;
+        }
+        else {
+            std::cout << "Z1 и Z2 не приблизительно равны." << std::endl;
+        }
+    }
+    catch (const CustomException& e)
+    {
+        std::cerr << e.what() << " (Значение: " << e.getValue() << ", Код ошибки: " << e.getErrorCode() << ")" << std::endl;
+    }
 
     return 0;
 }
